@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentValues;
@@ -15,6 +16,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -72,31 +74,61 @@ public class MainActivity extends AppCompatActivity {
                 ));
 
                 } while (cursor.moveToNext());
+
+            cursor.close();
         }
         //listaDinamica.add(new Contato("Ricardo",
                                     //"Rua das Flores, 542",
                                    // "41234354",
+
+
                                    // "4499875634"));
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            String id = "Channel_1";
+            String description = "143";
+            int importance = NotificationManager.IMPORTANCE_LOW;
+            NotificationChannel channel = new NotificationChannel(id, description,importance);
+            channel.enableVibration(true);
 
-        manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        Notification.Builder builder = new Notification.Builder(this)
-                .setContentTitle("Novo site do integrado")
-                .setContentText("Veja o novo site da faculdade")
-                .setAutoCancel(true)
-                .setSmallIcon(R.drawable.ic_baseline_web_24);
+            Uri webpage = Uri.parse("https://grupointegrado.br");
+            Intent webIntent = new Intent(Intent.ACTION_VIEW, webpage);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                    0,
+                    webIntent,
+                    0);
+            notification = new Notification.Builder(this, id)
+                    .setCategory(Notification.CATEGORY_MESSAGE)
+                    .setSmallIcon(R.drawable.ic_baseline_web_24)
+                    .setContentTitle("Novo site do Integrado!")
+                    .setContentText("Veja o novo site da faculdade")
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .build();
+            manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(channel);
+            manager.notify(1, notification);
 
-        Uri webpage = Uri.parse("https://grupointegrado.br");
-        Intent webIntent = new Intent(Intent.ACTION_VIEW, webpage);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0,
-                webIntent,
-                0);
 
-        builder.setContentIntent(pendingIntent);
+        }else{
+            manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            Notification.Builder builder = new Notification.Builder(this)
+                    .setContentTitle("Novo site do integrado")
+                    .setContentText("Veja o novo site da faculdade")
+                    .setAutoCancel(true)
+                    .setSmallIcon(R.drawable.ic_baseline_web_24);
 
-        notification = builder.build();
+            Uri webpage = Uri.parse("https://grupointegrado.br");
+            Intent webIntent = new Intent(Intent.ACTION_VIEW, webpage);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                    0,
+                    webIntent,
+                    0);
 
-        manager.notify(R.drawable.ic_launcher_background, notification);
+            builder.setContentIntent(pendingIntent);
+
+            notification = builder.build();
+            manager.notify(R.drawable.ic_launcher_background, notification);
+        }
 
         adptador = new ContatoAdapter(this, 0, listaDinamica);
         listView = (ListView) findViewById(R.id.Dinamico);
@@ -136,6 +168,40 @@ public class MainActivity extends AppCompatActivity {
                             listaDinamica.remove(i);
                             adptador.notifyDataSetChanged();
                             adAlterarExcluir.dismiss();
+                            // "4499875634"));
+                            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                                String id = "Channel_1";
+                                String description = "143";
+                                int importance = NotificationManager.IMPORTANCE_LOW;
+                                NotificationChannel channel = new NotificationChannel(id, description,importance);
+                                channel.enableVibration(true);
+
+
+                                notification = new Notification.Builder(MainActivity.this, id)
+                                        .setCategory(Notification.CATEGORY_MESSAGE)
+                                        .setSmallIcon(R.drawable.ic_baseline_web_24)
+                                        .setContentTitle("Contato removido!")
+                                        .setContentText("Contato removido da agenda")
+                                        .setAutoCancel(true)
+                                        .build();
+                                manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                                manager.createNotificationChannel(channel);
+                                manager.notify(1, notification);
+
+
+                            }else{
+                                manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                                Notification.Builder builder = new Notification.Builder(MainActivity.this)
+                                        .setContentTitle("Contato removido!")
+                                        .setContentText("Contato removido da agenda")
+                                        .setAutoCancel(true)
+                                        .setSmallIcon(R.drawable.ic_baseline_web_24);
+
+
+
+                                notification = builder.build();
+                                manager.notify(R.drawable.ic_launcher_background, notification);
+                            }
                         }
                     }
                 });
@@ -221,6 +287,7 @@ public class MainActivity extends AppCompatActivity {
                     data.getStringExtra("telefone2")));
 
             adptador.notifyDataSetChanged();
+
         }
 
 
@@ -246,6 +313,39 @@ public class MainActivity extends AppCompatActivity {
                                           data.getStringExtra("telefone1"),
                                           data.getStringExtra("telefone2")));
             adptador.notifyDataSetChanged();
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                String id2 = "Channel_1";
+                String description = "143";
+                int importance = NotificationManager.IMPORTANCE_LOW;
+                NotificationChannel channel = new NotificationChannel(id2, description,importance);
+                channel.enableVibration(true);
+
+
+                notification = new Notification.Builder(MainActivity.this, id2)
+                        .setCategory(Notification.CATEGORY_MESSAGE)
+                        .setSmallIcon(R.drawable.ic_baseline_web_24)
+                        .setContentTitle("Contato adicionado!")
+                        .setContentText("Contato adicionado na agenda")
+                        .setAutoCancel(true)
+                        .build();
+                manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                manager.createNotificationChannel(channel);
+                manager.notify(1, notification);
+
+
+            }else{
+                manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                Notification.Builder builder = new Notification.Builder(MainActivity.this)
+                        .setContentTitle("Contato adicionado!")
+                        .setContentText("Contato adicionado na agenda")
+                        .setAutoCancel(true)
+                        .setSmallIcon(R.drawable.ic_baseline_web_24);
+
+
+
+                notification = builder.build();
+                manager.notify(R.drawable.ic_launcher_background, notification);
+            }
 
         }
     }
