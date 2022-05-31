@@ -1,4 +1,8 @@
 Lista de contatos
 
 
-![2022-05-11 23_00_37-ListaContatos – MainActivity java  ListaContatos app](https://user-images.githubusercontent.com/75685022/167977065-b6308fb9-a027-4a3f-9e4c-60e200a7e01f.png)
+# Repository
+This repo contains a contact list android application. <br><br>
+![GitHub top language](https://img.shields.io/github/languages/top/mariarobertap/android_lista_contatos?color=green)
+![GitHub forks](https://img.shields.io/github/forks/mariarobertap/android_lista_contatos?style=social)
+![GitHub Repo stars](https://img.shields.io/github/stars/mariarobertap/android_lista_contatos?style=social)
