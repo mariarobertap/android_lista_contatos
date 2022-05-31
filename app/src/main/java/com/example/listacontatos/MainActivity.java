@@ -18,7 +18,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -40,14 +43,54 @@ public class MainActivity extends AppCompatActivity {
     private AlertDialog adAlterarExcluir;
     private Notification notification;
     private NotificationManager manager;
+    private GestureDetector gestureDetector;
+    private static  final int LIMITE_SWIPE= 70;
+    private static  final int LIMITE_VELOCIDADE= 70;
 
-    @SuppressLint("Range")
+
+    GestureDetector.SimpleOnGestureListener gestureListener = new GestureDetector.SimpleOnGestureListener() {
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            Log.i("onfling", "x1 = " + e1.getX() + "x2" + e2.getX()  + "VelocityX" + velocityX);
+            float diferencaX = e2.getX() - e1.getX();
+            if(Math.abs(diferencaX) > LIMITE_SWIPE && Math.abs(velocityX) > LIMITE_VELOCIDADE){
+                if(diferencaX > 0 ){
+                    adicionarElemento();
+                    Log.i("Movimento", "Movimento para a direita");
+
+                }else{
+                    alterarExcluir(-1);
+                    Log.i("Movimento", "Movimento para a esquerda");
+
+                }
+
+            }
+            return true;
+        }
+    };
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return gestureDetector.onTouchEvent(event);
+    }
+
+    View.OnTouchListener touchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View view, MotionEvent event) {
+            return gestureDetector.onTouchEvent(event);
+        }
+
+    };
+
+
+        @SuppressLint("Range")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         //Inicialização das variaveis
+
+        gestureDetector = new GestureDetector(this, gestureListener);
         btAdicionar = (Button) findViewById(R.id.btAdicionar);
 
 
@@ -77,12 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
             cursor.close();
         }
-        //listaDinamica.add(new Contato("Ricardo",
-                                    //"Rua das Flores, 542",
-                                   // "41234354",
 
-
-                                   // "4499875634"));
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
             String id = "Channel_1";
             String description = "143";
@@ -133,136 +171,19 @@ public class MainActivity extends AppCompatActivity {
         adptador = new ContatoAdapter(this, 0, listaDinamica);
         listView = (ListView) findViewById(R.id.Dinamico);
         listView.setAdapter(adptador);
+        listView.setOnTouchListener(touchListener);
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-                LayoutInflater layoutInflater = getLayoutInflater();
-                View alterarExcluir = layoutInflater.inflate(R.layout.alterar_excluir, null);
-                alterarExcluir.findViewById(R.id.imFundo);
-                TextView text = alterarExcluir.findViewById(R.id.tvTitulo);
-
-                text.setText("cLIEUQ EM ALETRAR PARA MODIFICAR");
-                alterarExcluir.findViewById(R.id.btAlterar).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Intent intent = new Intent(MainActivity.this, adicionarContato.class);
-                        Bundle bundle = new Bundle();
-                        bundle.putInt("posicao", i);
-                        bundle.putString("nome", listaDinamica.get(i).getNome());
-                        bundle.putString("endereco", listaDinamica.get(i).getEndereco());
-                        bundle.putString("telefone1", listaDinamica.get(i).getTelefone1());
-                        bundle.putString("telefone2", listaDinamica.get(i).getTelefone2());
-                        intent.putExtras(bundle);
-                        startActivityForResult(intent, ALTERAR_CONTATO);
-                        adAlterarExcluir.dismiss();
-
-                    }
-                });
-                alterarExcluir.findViewById(R.id.btExcluir).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(!listaDinamica.isEmpty()){
-                            int idx = listaDinamica.get(i).getId();
-                            db.delete("CONTATOS", "ID = ?", new String[]{String.valueOf(idx)});
-                            listaDinamica.remove(i);
-                            adptador.notifyDataSetChanged();
-                            adAlterarExcluir.dismiss();
-                            // "4499875634"));
-                            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-                                String id = "Channel_1";
-                                String description = "143";
-                                int importance = NotificationManager.IMPORTANCE_LOW;
-                                NotificationChannel channel = new NotificationChannel(id, description,importance);
-                                channel.enableVibration(true);
-
-
-                                notification = new Notification.Builder(MainActivity.this, id)
-                                        .setCategory(Notification.CATEGORY_MESSAGE)
-                                        .setSmallIcon(R.drawable.ic_baseline_web_24)
-                                        .setContentTitle("Contato removido!")
-                                        .setContentText("Contato removido da agenda")
-                                        .setAutoCancel(true)
-                                        .build();
-                                manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                                manager.createNotificationChannel(channel);
-                                manager.notify(1, notification);
-
-
-                            }else{
-                                manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                                Notification.Builder builder = new Notification.Builder(MainActivity.this)
-                                        .setContentTitle("Contato removido!")
-                                        .setContentText("Contato removido da agenda")
-                                        .setAutoCancel(true)
-                                        .setSmallIcon(R.drawable.ic_baseline_web_24);
-
-
-
-                                notification = builder.build();
-                                manager.notify(R.drawable.ic_launcher_background, notification);
-                            }
-                        }
-                    }
-                });
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle("Alterar ou Excluir?");
-                builder.setView(alterarExcluir);
-                adAlterarExcluir = builder.create();
-                adAlterarExcluir.show();
+                alterarExcluir(i);
                 return false;
-                /*
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this)
-                .setTitle("Alterar ou Excluir")
-                .setMessage("Clique em alterar para modificar os dados ou excluir para remomer o contato")
-                        .setPositiveButton("Alterar", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int arg2) {
-                                    Intent intent = new Intent(MainActivity.this, adicionarContato.class);
-                                    Bundle bundle = new Bundle();
-                                    bundle.putInt("posicao", i);
-                                    bundle.putString("nome", listaDinamica.get(i).getNome());
-                                    bundle.putString("endereco", listaDinamica.get(i).getEndereco());
-                                    bundle.putString("telefone1", listaDinamica.get(i).getTelefone1());
-                                    bundle.putString("telefone2", listaDinamica.get(i).getTelefone2());
-                                    intent.putExtras(bundle);
-                                    startActivityForResult(intent, ALTERAR_CONTATO);
-                            }
-                        })
-                        .setNegativeButton("Excluir", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int arg2) {
-                                if(!listaDinamica.isEmpty()){
-                                    int idx = listaDinamica.get(i).getId();
-                                    db.delete("CONTATOS", "ID = ?", new String[]{String.valueOf(idx)});
-                                    listaDinamica.remove(i);
-                                    adptador.notifyDataSetChanged();
-                                }
-                            }
-                        });
-
-
-
-
-                adAlterarExcluir = builder.create();
-                adAlterarExcluir.show();
-
-                return false;
-                 */
-
             }
         });
-
-
-
-
 
         btAdicionar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(), adicionarContato.class);
-                startActivityForResult(intent,NOVO_CONTATO);
+                adicionarElemento();
             }
         });
     }
@@ -348,5 +269,92 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+    }
+
+    private void alterarExcluir( int  pos){
+        if(pos < 0){
+            pos = (listaDinamica.size() - 1);
+        }
+        LayoutInflater layoutInflater = getLayoutInflater();
+        View alterarExcluir = layoutInflater.inflate(R.layout.alterar_excluir, null);
+        alterarExcluir.findViewById(R.id.imFundo);
+        TextView text = alterarExcluir.findViewById(R.id.tvTitulo);
+
+        text.setText("cLIEUQ EM ALETRAR PARA MODIFICAR");
+        int finalPos = pos;
+        alterarExcluir.findViewById(R.id.btAlterar).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, adicionarContato.class);
+                Bundle bundle = new Bundle();
+                bundle.putInt("posicao", finalPos);
+                bundle.putString("nome", listaDinamica.get(finalPos).getNome());
+                bundle.putString("endereco", listaDinamica.get(finalPos).getEndereco());
+                bundle.putString("telefone1", listaDinamica.get(finalPos).getTelefone1());
+                bundle.putString("telefone2", listaDinamica.get(finalPos).getTelefone2());
+                intent.putExtras(bundle);
+                startActivityForResult(intent, ALTERAR_CONTATO);
+                adAlterarExcluir.dismiss();
+
+            }
+        });
+        alterarExcluir.findViewById(R.id.btExcluir).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!listaDinamica.isEmpty()){
+                    int idx = listaDinamica.get(finalPos).getId();
+                    db.delete("CONTATOS", "ID = ?", new String[]{String.valueOf(idx)});
+                    listaDinamica.remove(finalPos);
+                    adptador.notifyDataSetChanged();
+                    adAlterarExcluir.dismiss();
+                    // "4499875634"));
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                        String id = "Channel_1";
+                        String description = "143";
+                        int importance = NotificationManager.IMPORTANCE_LOW;
+                        NotificationChannel channel = new NotificationChannel(id, description,importance);
+                        channel.enableVibration(true);
+
+
+                        notification = new Notification.Builder(MainActivity.this, id)
+                                .setCategory(Notification.CATEGORY_MESSAGE)
+                                .setSmallIcon(R.drawable.ic_baseline_web_24)
+                                .setContentTitle("Contato removido!")
+                                .setContentText("Contato removido da agenda")
+                                .setAutoCancel(true)
+                                .build();
+                        manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                        manager.createNotificationChannel(channel);
+                        manager.notify(1, notification);
+
+
+                    }else{
+                        manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                        Notification.Builder builder = new Notification.Builder(MainActivity.this)
+                                .setContentTitle("Contato removido!")
+                                .setContentText("Contato removido da agenda")
+                                .setAutoCancel(true)
+                                .setSmallIcon(R.drawable.ic_baseline_web_24);
+
+
+
+                        notification = builder.build();
+                        manager.notify(R.drawable.ic_launcher_background, notification);
+                    }
+                }
+            }
+        });
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Alterar ou Excluir?");
+        builder.setView(alterarExcluir);
+        adAlterarExcluir = builder.create();
+        adAlterarExcluir.show();
+
+    }
+
+    private void adicionarElemento(){
+        Intent intent = new Intent(getApplicationContext(), adicionarContato.class);
+        startActivityForResult(intent,NOVO_CONTATO);
     }
 }
